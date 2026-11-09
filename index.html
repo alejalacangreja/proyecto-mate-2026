@@ -281,10 +281,76 @@
   .confetti{position:fixed;top:-24px;font-size:20px;z-index:61;pointer-events:none;animation:fall linear forwards;}
   @keyframes fall{to{transform:translateY(112vh) rotate(360deg);opacity:.85;}}
 
+  /* Confeti de papel */
+  .paper{
+    position:fixed;top:-20px;z-index:61;pointer-events:none;
+    width:8px;height:14px;border-radius:2px;
+    animation:paperfall linear forwards;
+  }
+  @keyframes paperfall{
+    0%  {transform:translate(0,0) rotateZ(0) rotateY(0);}
+    25% {transform:translate(var(--sway),28vh) rotateZ(160deg) rotateY(180deg);}
+    50% {transform:translate(calc(var(--sway) * -1),56vh) rotateZ(320deg) rotateY(360deg);}
+    75% {transform:translate(var(--sway),84vh) rotateZ(480deg) rotateY(540deg);}
+    100%{transform:translate(0,112vh) rotateZ(640deg) rotateY(720deg);}
+  }
+
+  /* Código hacker (lluvia de código) */
+  .matrix{position:absolute;inset:0;width:100%;height:100%;pointer-events:none;transition:opacity .9s ease;}
+  #splash .matrix{opacity:.28;z-index:0;}
+  #splash > :not(canvas){position:relative;z-index:1;}
+  #finale .matrix{opacity:.5;}
+  #finale.verde .matrix{opacity:.14;}
+
+  /* Moto que cruza la pantalla */
+  .moto{
+    position:fixed;left:0;z-index:62;pointer-events:none;
+    font-size:58px;line-height:1;white-space:nowrap;
+    animation:ride 3.6s cubic-bezier(.45,.05,.55,.95) forwards;
+  }
+  .moto .bike{display:inline-block;animation:bump .28s ease-in-out infinite alternate;}
+  .moto .dust{display:inline-block;font-size:.6em;opacity:.85;margin-right:-6px;animation:puff .35s ease-in-out infinite alternate;}
+  @keyframes ride{
+    0%  {transform:translateX(-160px) rotate(0);}
+    45% {transform:translateX(42vw) rotate(-8deg);}
+    55% {transform:translateX(55vw) rotate(-14deg);}
+    100%{transform:translateX(calc(100vw + 40px)) rotate(0);}
+  }
+  @keyframes bump{to{transform:translateY(-5px);}}
+  @keyframes puff{to{transform:scale(1.25) translateX(-4px);opacity:.4;}}
+
+  /* Fiesta: globos y luces */
+  .balloon{
+    position:fixed;bottom:-80px;z-index:61;pointer-events:none;font-size:34px;
+    animation:rise linear forwards;
+  }
+  @keyframes rise{
+    0%  {transform:translate(0,0) rotate(-6deg);}
+    50% {transform:translate(var(--sway),-60vh) rotate(6deg);}
+    100%{transform:translate(0,-125vh) rotate(-6deg);}
+  }
+  #finale::before{
+    content:"";position:absolute;inset:-20%;pointer-events:none;opacity:0;
+    background:
+      radial-gradient(circle at 20% 30%, rgba(197,237,112,.35), transparent 35%),
+      radial-gradient(circle at 80% 20%, rgba(255,255,255,.22), transparent 30%),
+      radial-gradient(circle at 50% 85%, rgba(255,200,80,.25), transparent 35%);
+    transition:opacity .8s ease;
+  }
+  #finale.fiesta::before{opacity:1;animation:disco 2.4s ease-in-out infinite alternate;}
+  @keyframes disco{
+    0%  {transform:rotate(0) scale(1);filter:hue-rotate(0deg);}
+    100%{transform:rotate(25deg) scale(1.15);filter:hue-rotate(90deg);}
+  }
+  #phase3 .photo-frame{animation:pulse 1.2s ease-in-out infinite alternate;}
+  @keyframes pulse{to{box-shadow:0 0 60px rgba(197,237,112,.6);transform:scale(1.05);}}
+
   @media (prefers-reduced-motion: reduce){
     .screen{transition:none;opacity:1;transform:none;}
     .loadbar-fill{animation:none;width:100%;}
-    .confetti{display:none;}
+    .confetti,.paper,.moto,.balloon,.matrix{display:none;}
+    #finale.fiesta::before{animation:none;}
+    #phase3 .photo-frame{animation:none;}
     .reveal-line{transition:none;}
     .finale-phase{transition:none;}
     #finale{transition:none;}
@@ -294,6 +360,7 @@
 <body>
 
 <div id="splash">
+  <canvas class="matrix" id="matrixSplash" aria-hidden="true"></canvas>
   <div class="logo-mark">Grapez · Security Center</div>
   <div class="loadbar"><div class="loadbar-fill"></div></div>
   <div class="splash-sub">Escaneando accesos: <strong style="color:var(--lima)">MAURO_ROOT</strong>...</div>
@@ -375,6 +442,7 @@
 </div>
 
 <div id="finale" aria-hidden="true">
+  <canvas class="matrix" id="matrixFinale" aria-hidden="true"></canvas>
   <div id="phase1" class="finale-phase active">
     <p id="introLine" class="intro-line"></p>
   </div>
@@ -403,9 +471,60 @@
 <script>
   const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
+  // ---- Lluvia de código hacker ----
+  function startMatrix(canvas) {
+    if (reduceMotion || !canvas) return () => {};
+    const ctx = canvas.getContext('2d');
+    const tokens = '01{}[]<>/=;$#&|!?ABCDEF0123456789'.split('')
+      .concat(['sudo','root','git','npm','api','ssh','<?>','=>','0x','fn','if','MAURO','200k','🏍']);
+    const size = 15;
+    let cols = 0, drops = [], raf = 0, last = 0, running = true;
+    function resize() {
+      const dpr = Math.min(window.devicePixelRatio || 1, 2);
+      canvas.width = canvas.clientWidth * dpr;
+      canvas.height = canvas.clientHeight * dpr;
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+      cols = Math.ceil(canvas.clientWidth / size);
+      drops = Array.from({length: cols}, () => Math.random() * -40);
+    }
+    resize();
+    window.addEventListener('resize', resize);
+    function draw(now) {
+      if (!running) return;
+      raf = requestAnimationFrame(draw);
+      if (now - last < 55) return;
+      last = now;
+      // Desvanece el rastro sin pintar color encima (así sirve sobre carbón y sobre verde)
+      ctx.globalCompositeOperation = 'destination-out';
+      ctx.fillStyle = 'rgba(0,0,0,.14)';
+      ctx.fillRect(0, 0, canvas.clientWidth, canvas.clientHeight);
+      ctx.globalCompositeOperation = 'source-over';
+      ctx.font = '600 ' + size + 'px "JetBrains Mono", monospace';
+      for (let i = 0; i < cols; i++) {
+        const t = tokens[Math.floor(Math.random() * tokens.length)];
+        const y = drops[i] * size;
+        ctx.fillStyle = Math.random() > .96 ? '#FFFFFF' : '#C5ED70';
+        ctx.fillText(t.length > 2 && Math.random() > .3 ? t[0] : t, i * size, y);
+        if (y > canvas.clientHeight && Math.random() > .975) drops[i] = 0;
+        drops[i]++;
+      }
+    }
+    raf = requestAnimationFrame(draw);
+    return () => {
+      running = false;
+      cancelAnimationFrame(raf);
+      window.removeEventListener('resize', resize);
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+    };
+  }
+
   // Splash
+  const stopSplashMatrix = startMatrix(document.getElementById('matrixSplash'));
   window.addEventListener('load', () => {
-    setTimeout(() => document.getElementById('splash').classList.add('hide'), reduceMotion ? 200 : 2100);
+    setTimeout(() => {
+      document.getElementById('splash').classList.add('hide');
+      setTimeout(stopSplashMatrix, 700);
+    }, reduceMotion ? 200 : 2600);
   });
 
   // Scroll reveal por sección
@@ -464,12 +583,12 @@
       if (i >= introMsgs.length) { onDone(); return; }
       const msg = introMsgs[i];
       introLine.style.opacity = 0;
-      setTimeout(() => {
+      later(() => {
         introLine.className = 'intro-line ' + msg.cls;
         introLine.textContent = msg.text;
         introLine.style.opacity = 1;
         i++;
-        setTimeout(next, 1400);
+        later(next, 1400);
       }, 250);
     }
     next();
@@ -484,27 +603,66 @@
     lines.forEach(l => l.classList.remove('show'));
 
     let lastDelay = 0;
-    lines.forEach(l => {
+    lines.forEach((l, idx) => {
       const delay = reduceMotion ? 0 : parseInt(l.dataset.delay || 0, 10);
       lastDelay = Math.max(lastDelay, delay);
-      setTimeout(() => {
+      later(() => {
         l.classList.add('show');
-        if (l.classList.contains('big')) launchConfetti();
+        if (l.classList.contains('big')) { launchConfetti(70, 90); later(() => launchConfetti(40, 60), 900); }
+        if (idx === 1) rideMoto();                       // #MauroEnSuMoto
+        if (idx === 2) launchConfetti(50, 80);           // el bono
+        if (idx === 3) { rideMoto(); later(rideMoto, 700); } // accesorios para la moto
+        if (idx === 4) launchConfetti(40, 60);
       }, delay);
     });
 
-    setTimeout(playPhase3, reduceMotion ? 6500 : lastDelay + 4200);
+    later(playPhase3, reduceMotion ? 6500 : lastDelay + 4200);
   }
 
   function playPhase3() {
     phase2.classList.remove('active');
     phase3.classList.add('active');
+    startFiesta();
+  }
+
+  // ---- Temporizadores del final (se limpian al cerrar) ----
+  let timers = [];
+  function later(fn, ms) { const t = setTimeout(fn, ms); timers.push(t); return t; }
+  let fiestaInterval = 0;
+  let stopFinaleMatrix = () => {};
+
+  function startFiesta() {
+    finale.classList.add('fiesta');
+    if (reduceMotion) return;
+    launchConfetti(90, 110);
+    launchBalloons(14);
+    rideMoto();
+    let tick = 0;
+    fiestaInterval = setInterval(() => {
+      tick++;
+      launchConfetti(8, 14);
+      if (tick % 3 === 0) launchBalloons(3);
+      if (tick % 9 === 0) rideMoto();
+    }, 650);
+  }
+
+  function stopAll() {
+    timers.forEach(clearTimeout);
+    timers = [];
+    clearInterval(fiestaInterval);
+    stopFinaleMatrix();
+    stopFinaleMatrix = () => {};
+    finale.classList.remove('fiesta');
+    document.querySelectorAll('.confetti,.paper,.moto,.balloon').forEach(n => n.remove());
   }
 
   document.getElementById('revealBtn').addEventListener('click', () => {
+    stopAll();
     finale.classList.add('open');
     finale.setAttribute('aria-hidden', 'false');
     finale.classList.remove('verde');
+    stopFinaleMatrix = startMatrix(document.getElementById('matrixFinale'));
+    launchConfetti(25, 30);
     phase1.classList.add('active');
     phase2.classList.remove('active');
     phase3.classList.remove('active');
@@ -514,22 +672,74 @@
   });
 
   document.getElementById('closeFinale').addEventListener('click', () => {
+    stopAll();
     finale.classList.remove('open');
     finale.setAttribute('aria-hidden', 'true');
   });
 
-  function launchConfetti() {
+  // ---- Confeti: emojis + papelitos de colores ----
+  const MAX_PIECES = 260;
+  function launchConfetti(nEmoji = 30, nPaper = 40) {
     if (reduceMotion) return;
-    const emojis = ['🎉','💚','🏍️','🌮','⚽','✨'];
-    for (let i = 0; i < 30; i++) {
+    const live = document.querySelectorAll('.confetti,.paper').length;
+    const room = Math.max(0, MAX_PIECES - live);
+    const scale = Math.min(1, room / (nEmoji + nPaper || 1));
+    nEmoji = Math.round(nEmoji * scale); nPaper = Math.round(nPaper * scale);
+
+    const emojis = ['🎉','🎊','💚','🤍','🏍️','🌮','⚽','✨','🥳','💻','🔥','🏁'];
+    for (let i = 0; i < nEmoji; i++) {
       const c = document.createElement('div');
       c.className = 'confetti';
       c.textContent = emojis[Math.floor(Math.random() * emojis.length)];
       c.style.left = Math.random() * 96 + 'vw';
-      c.style.animationDuration = (2.4 + Math.random() * 2) + 's';
-      c.style.fontSize = (14 + Math.random() * 14) + 'px';
+      c.style.animationDuration = (2.4 + Math.random() * 2.4) + 's';
+      c.style.animationDelay = (Math.random() * .6) + 's';
+      c.style.fontSize = (14 + Math.random() * 18) + 'px';
       document.body.appendChild(c);
-      setTimeout(() => c.remove(), 5000);
+      setTimeout(() => c.remove(), 5800);
+    }
+    const colors = ['#C5ED70','#FFFFFF','#A9D94F','#0B5E34','#FFD166','#FF6B5B','#EEF9D4'];
+    for (let i = 0; i < nPaper; i++) {
+      const p = document.createElement('div');
+      p.className = 'paper';
+      p.style.left = Math.random() * 100 + 'vw';
+      p.style.background = colors[Math.floor(Math.random() * colors.length)];
+      p.style.setProperty('--sway', (Math.random() * 60 - 30) + 'px');
+      p.style.width = (6 + Math.random() * 6) + 'px';
+      p.style.height = (10 + Math.random() * 8) + 'px';
+      p.style.animationDuration = (3 + Math.random() * 2.5) + 's';
+      p.style.animationDelay = (Math.random() * .8) + 's';
+      document.body.appendChild(p);
+      setTimeout(() => p.remove(), 6500);
+    }
+  }
+
+  // ---- Moto cruzando la pantalla ----
+  function rideMoto() {
+    if (reduceMotion) return;
+    const m = document.createElement('div');
+    m.className = 'moto';
+    m.innerHTML = '<span class="dust">💨</span><span class="bike">🏍️</span>';
+    m.style.bottom = (10 + Math.random() * 22) + 'vh';
+    document.body.appendChild(m);
+    setTimeout(() => m.remove(), 3800);
+  }
+
+  // ---- Globos de fiesta ----
+  function launchBalloons(n) {
+    if (reduceMotion) return;
+    const items = ['🎈','🎈','🎈','🎉','🥳','🎁'];
+    for (let i = 0; i < n; i++) {
+      const b = document.createElement('div');
+      b.className = 'balloon';
+      b.textContent = items[Math.floor(Math.random() * items.length)];
+      b.style.left = Math.random() * 92 + 'vw';
+      b.style.fontSize = (26 + Math.random() * 20) + 'px';
+      b.style.setProperty('--sway', (Math.random() * 80 - 40) + 'px');
+      b.style.animationDuration = (5 + Math.random() * 3) + 's';
+      b.style.animationDelay = (Math.random() * 1.2) + 's';
+      document.body.appendChild(b);
+      setTimeout(() => b.remove(), 9500);
     }
   }
 </script>
