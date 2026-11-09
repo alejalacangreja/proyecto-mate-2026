@@ -309,15 +309,38 @@
     animation:ride 3.6s cubic-bezier(.45,.05,.55,.95) forwards;
   }
   .moto .bike{display:inline-block;animation:bump .28s ease-in-out infinite alternate;}
-  .moto .dust{display:inline-block;font-size:.6em;opacity:.85;margin-right:-6px;animation:puff .35s ease-in-out infinite alternate;}
+  .moto .dust{display:inline-block;font-size:.6em;opacity:.85;margin-left:-6px;transform:scaleX(-1);animation:puff .35s ease-in-out infinite alternate;}
+  /* El emoji 🏍️ mira a la izquierda: la moto viaja de derecha a izquierda */
   @keyframes ride{
-    0%  {transform:translateX(-160px) rotate(0);}
-    45% {transform:translateX(42vw) rotate(-8deg);}
-    55% {transform:translateX(55vw) rotate(-14deg);}
-    100%{transform:translateX(calc(100vw + 40px)) rotate(0);}
+    0%  {transform:translateX(calc(100vw + 40px)) rotate(0);}
+    45% {transform:translateX(55vw) rotate(8deg);}
+    55% {transform:translateX(42vw) rotate(14deg);}
+    100%{transform:translateX(-180px) rotate(0);}
   }
   @keyframes bump{to{transform:translateY(-5px);}}
-  @keyframes puff{to{transform:scale(1.25) translateX(-4px);opacity:.4;}}
+  @keyframes puff{to{transform:scaleX(-1) scale(1.25) translateX(-4px);opacity:.4;}}
+
+  [hidden]{display:none!important;}
+
+  /* Botón de entrada (activa la música) */
+  .splash-btn{max-width:230px;margin-top:6px;}
+
+  /* Botón de sonido flotante */
+  #soundBtn{
+    position:fixed;z-index:70;
+    right:16px;bottom:calc(16px + env(safe-area-inset-bottom, 0px));
+    width:48px;height:48px;border-radius:50%;
+    background:rgba(31,34,28,.78);
+    border:1px solid rgba(197,237,112,.5);
+    color:var(--ink);font-size:20px;cursor:pointer;
+    display:flex;align-items:center;justify-content:center;
+    backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);
+    transition:transform .15s ease;
+  }
+  #soundBtn:hover{transform:scale(1.07);}
+  #soundBtn:focus-visible{outline:3px solid var(--lima);outline-offset:3px;}
+  #soundBtn.playing{animation:beat .46s ease-in-out infinite alternate;}
+  @keyframes beat{to{box-shadow:0 0 0 6px rgba(197,237,112,.18);}}
 
   /* Fiesta: globos y luces */
   .balloon{
@@ -363,8 +386,11 @@
   <canvas class="matrix" id="matrixSplash" aria-hidden="true"></canvas>
   <div class="logo-mark">Grapez · Security Center</div>
   <div class="loadbar"><div class="loadbar-fill"></div></div>
-  <div class="splash-sub">Escaneando accesos: <strong style="color:var(--lima)">MAURO_ROOT</strong>...</div>
+  <div class="splash-sub" id="splashSub">Escaneando accesos: <strong style="color:var(--lima)">MAURO_ROOT</strong>...</div>
+  <button class="btn splash-btn" id="enterBtn" hidden>Entrar con sonido 🔊</button>
 </div>
+
+<button id="soundBtn" type="button" aria-label="Silenciar música" hidden>🔊</button>
 
 <div class="wrap">
 
@@ -518,13 +544,129 @@
     };
   }
 
+  // ---- Música de fondo: "Feliz cumpleaños" en versión chiptune, generada en el navegador ----
+  const music = (() => {
+    let ctx = null, master = null, timer = 0, nextTime = 0, beat = 0, muted = false;
+    const BPM = 138, SPB = 60 / BPM;
+    const N = {A2:110,C3:130.81,D3:146.83,E3:164.81,F3:174.61,G3:196,A3:220,B3:246.94,
+               C4:261.63,E4:329.63,F4:349.23,G4:392,A4:440,B4:493.88,
+               C5:523.25,D5:587.33,E5:659.25,F5:698.46,G5:783.99};
+    // Melodía [nota, duración en beats]; 24 beats en 3/4 (el anacrusa "fe-liz" abre el ciclo)
+    const melody = [['G4',.75],['G4',.25],['A4',1],['G4',1],['C5',1],['B4',2],
+                    ['G4',.75],['G4',.25],['A4',1],['G4',1],['D5',1],['C5',2],
+                    ['G4',.75],['G4',.25],['G5',1],['E5',1],['C5',1],['B4',1],['A4',1],
+                    ['F5',.75],['F5',.25],['E5',1],['C5',1],['D5',1],['C5',2]];
+    // Acorde (raíz) por beat
+    const roots = ['C3','C3','C3','C3','G3','G3','G3','G3','G3','G3','C3','C3','C3',
+                   'C3','C3','C3','F3','F3','F3','F3','G3','G3','C3','C3'];
+    // Línea de tiempo de la melodía en beats
+    const mTimeline = []; { let t = 0; melody.forEach(([n,d]) => { mTimeline.push([t,n,d]); t += d; }); }
+    const LOOP = 24;
+    let noiseBuf = null;
+
+    function tone(type, freq, start, dur, vol, dest) {
+      const o = ctx.createOscillator(), g = ctx.createGain();
+      o.type = type; o.frequency.value = freq;
+      g.gain.setValueAtTime(0.0001, start);
+      g.gain.exponentialRampToValueAtTime(vol, start + 0.012);
+      g.gain.exponentialRampToValueAtTime(0.0001, start + dur);
+      o.connect(g); g.connect(dest || master);
+      o.start(start); o.stop(start + dur + 0.05);
+    }
+    function kick(t) {
+      const o = ctx.createOscillator(), g = ctx.createGain();
+      o.frequency.setValueAtTime(150, t);
+      o.frequency.exponentialRampToValueAtTime(45, t + 0.14);
+      g.gain.setValueAtTime(0.9, t);
+      g.gain.exponentialRampToValueAtTime(0.0001, t + 0.18);
+      o.connect(g); g.connect(master); o.start(t); o.stop(t + 0.2);
+    }
+    function hat(t, vol) {
+      const s = ctx.createBufferSource(), f = ctx.createBiquadFilter(), g = ctx.createGain();
+      s.buffer = noiseBuf; f.type = 'highpass'; f.frequency.value = 7000;
+      g.gain.setValueAtTime(vol, t); g.gain.exponentialRampToValueAtTime(0.0001, t + 0.05);
+      s.connect(f); f.connect(g); g.connect(master); s.start(t); s.stop(t + 0.06);
+    }
+    function scheduleBeat(b, t) {
+      const lb = b % LOOP;
+      // Melodía (onda cuadrada) con eco
+      mTimeline.forEach(([mt, n, d]) => {
+        if (mt >= lb && mt < lb + 1) {
+          const st = t + (mt - lb) * SPB;
+          tone('square', N[n], st, d * SPB * .9, .09);
+          tone('square', N[n] * 2, st + SPB * .5, d * SPB * .5, .02); // eco a la octava
+        }
+      });
+      // Bajo "oom-pah-pah": raíz en el 1, quinta/octava en el 2 y 3
+      const r = N[roots[lb]];
+      const inBar = (lb + 2) % 3; // beat 1 de cada compás cae en lb = 1, 4, 7...
+      tone('triangle', inBar === 0 ? r / 2 : r, t, SPB * .8, .22);
+      if (inBar !== 0) tone('square', r * 1.5, t, SPB * .35, .025); // acorde arpegiado
+      // Batería
+      if (inBar === 0) kick(t);
+      hat(t, .05); hat(t + SPB / 2, .03);
+      if (Math.floor(b / LOOP) % 2 === 1 && inBar === 2) kick(t + SPB / 2); // variación cada 2.º ciclo
+    }
+    function pump() {
+      while (nextTime < ctx.currentTime + 0.25) {
+        scheduleBeat(beat, nextTime);
+        nextTime += SPB; beat++;
+      }
+    }
+    function start() {
+      if (!ctx) {
+        const AC = window.AudioContext || window.webkitAudioContext;
+        if (!AC) return false;
+        ctx = new AC();
+        master = ctx.createGain(); master.gain.value = 0.55;
+        const comp = ctx.createDynamicsCompressor();
+        master.connect(comp); comp.connect(ctx.destination);
+        noiseBuf = ctx.createBuffer(1, ctx.sampleRate * 0.1, ctx.sampleRate);
+        const d = noiseBuf.getChannelData(0); for (let i = 0; i < d.length; i++) d[i] = Math.random() * 2 - 1;
+        nextTime = ctx.currentTime + 0.1;
+        timer = setInterval(pump, 30);
+      }
+      if (!muted) ctx.resume();
+      return true;
+    }
+    function setMuted(m) { muted = m; if (ctx) (m ? ctx.suspend() : ctx.resume()); }
+    function pauseForHidden(h) { if (ctx && !muted) (h ? ctx.suspend() : ctx.resume()); }
+    return { start, setMuted, isMuted: () => muted, started: () => !!ctx, pauseForHidden };
+  })();
+
+  const soundBtn = document.getElementById('soundBtn');
+  function startMusic() {
+    if (music.started()) return;
+    if (!music.start()) return;
+    soundBtn.hidden = false;
+    soundBtn.classList.add('playing');
+  }
+  soundBtn.addEventListener('click', () => {
+    const m = !music.isMuted();
+    music.setMuted(m);
+    soundBtn.textContent = m ? '🔇' : '🔊';
+    soundBtn.setAttribute('aria-label', m ? 'Activar música' : 'Silenciar música');
+    soundBtn.classList.toggle('playing', !m);
+  });
+  // Los navegadores solo dejan sonar audio después de un toque: cualquier toque también la enciende
+  ['pointerdown','keydown','touchstart'].forEach(ev =>
+    window.addEventListener(ev, startMusic, {once:true, passive:true}));
+  document.addEventListener('visibilitychange', () => music.pauseForHidden(document.hidden));
+
   // Splash
+  const splash = document.getElementById('splash');
   const stopSplashMatrix = startMatrix(document.getElementById('matrixSplash'));
   window.addEventListener('load', () => {
     setTimeout(() => {
-      document.getElementById('splash').classList.add('hide');
-      setTimeout(stopSplashMatrix, 700);
-    }, reduceMotion ? 200 : 2600);
+      document.getElementById('splashSub').innerHTML = 'Acceso concedido ✅';
+      document.getElementById('enterBtn').hidden = false;
+      document.getElementById('enterBtn').focus();
+    }, reduceMotion ? 200 : 2200);
+  });
+  document.getElementById('enterBtn').addEventListener('click', () => {
+    startMusic();
+    splash.classList.add('hide');
+    setTimeout(stopSplashMatrix, 700);
   });
 
   // Scroll reveal por sección
@@ -719,7 +861,7 @@
     if (reduceMotion) return;
     const m = document.createElement('div');
     m.className = 'moto';
-    m.innerHTML = '<span class="dust">💨</span><span class="bike">🏍️</span>';
+    m.innerHTML = '<span class="bike">🏍️</span><span class="dust">💨</span>';
     m.style.bottom = (10 + Math.random() * 22) + 'vh';
     document.body.appendChild(m);
     setTimeout(() => m.remove(), 3800);
