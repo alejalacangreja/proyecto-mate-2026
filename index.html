@@ -1,0 +1,538 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="theme-color" content="#1F221C">
+<title>Feliz cumpleaños, Mauro 🎉</title>
+<meta name="description" content="Grapez Security Center detectó un acceso sospechoso: alguien con permisos root está cumpliendo años.">
+
+<meta property="og:title" content="🎉 Feliz cumpleaños, Mauro">
+<meta property="og:description" content="Alerta de seguridad: el equipo de Grapez tiene un reporte especial para ti. Ábrelo.">
+<meta property="og:image" content="https://mauro-cumple-2026.pages.dev/imagenes/mauro.png">
+<meta property="og:type" content="website">
+<meta name="twitter:card" content="summary_large_image">
+
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E%F0%9F%8E%89%3C/text%3E%3C/svg%3E">
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@600;700;800&family=Kumbh+Sans:wght@300;400;500;600&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
+
+<style>
+  :root{
+    --lima:#C5ED70;
+    --lima-100:#EEF9D4;
+    --lima-200:#DCF3A5;
+    --lima-500:#A9D94F;
+    --lima-700:#6F9B21;
+    --carbon:#1F221C;
+    --verde-nacional:#0B5E34;
+    --alerta:#FF6B5B;
+    --blanco:#FFFFFF;
+
+    --ink:#FFFFFF;
+    --ink-muted:rgba(255,255,255,.62);
+    --ink-faint:rgba(255,255,255,.42);
+    --panel:rgba(255,255,255,.045);
+    --panel-border:rgba(255,255,255,.16);
+    --panel-border-soft:rgba(255,255,255,.09);
+
+    --font-head:'Poppins',sans-serif;
+    --font-body:'Kumbh Sans',sans-serif;
+    --font-mono:'JetBrains Mono',ui-monospace,Consolas,monospace;
+
+    --radius-card:22px;
+    --radius-pill:999px;
+  }
+
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;overflow-x:hidden;max-width:100%;}
+  html{-webkit-text-size-adjust:100%;}
+  body{
+    background:var(--carbon);
+    color:var(--ink);
+    font-family:var(--font-body);
+    line-height:1.55;
+  }
+  img{max-width:100%;display:block;}
+  button{font-family:inherit;}
+
+  .wrap{max-width:480px;margin:0 auto;position:relative;}
+
+  /* ---- Sección genérica ---- */
+  .screen{
+    min-height:100svh;
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+    padding:56px 26px;
+    opacity:0;
+    transform:translateY(22px);
+    transition:opacity .7s ease, transform .7s ease;
+  }
+  .screen.in-view{opacity:1;transform:translateY(0);}
+  .screen.center{text-align:center;align-items:center;}
+
+  .bg-carbon{background:var(--carbon);}
+
+  .eyebrow{
+    font-family:var(--font-body);
+    font-size:12.5px;
+    font-weight:600;
+    letter-spacing:.09em;
+    text-transform:uppercase;
+    color:var(--ink-muted);
+    margin:0 0 12px;
+  }
+  h1,h2{font-family:var(--font-head);font-weight:800;line-height:1.12;margin:0 0 16px;letter-spacing:-.01em;}
+  h1{font-size:clamp(24px,7vw,32px);color:var(--ink);word-break:break-word;}
+  h1.mono{font-family:var(--font-mono);font-weight:700;letter-spacing:-.02em;}
+  h2{font-size:clamp(21px,6vw,26px);color:var(--ink);}
+  p{font-size:15.5px;line-height:1.6;color:var(--ink-muted);margin:0 0 16px;}
+  strong{color:var(--ink);font-weight:600;}
+  code{font-family:var(--font-mono);font-size:.9em;color:var(--lima);}
+
+  /* ---- Splash ---- */
+  #splash{
+    position:fixed;inset:0;background:var(--carbon);z-index:50;
+    display:flex;flex-direction:column;align-items:center;justify-content:center;gap:20px;
+    transition:opacity .6s ease, visibility .6s;
+  }
+  #splash.hide{opacity:0;visibility:hidden;pointer-events:none;}
+  .logo-mark{font-family:var(--font-head);font-weight:700;font-size:14px;letter-spacing:.16em;color:var(--lima);text-transform:uppercase;}
+  .loadbar{width:170px;height:4px;background:var(--panel-border-soft);border-radius:4px;overflow:hidden;}
+  .loadbar-fill{height:100%;width:0%;background:var(--lima);border-radius:4px;animation:load 2s ease forwards;}
+  @keyframes load{to{width:100%;}}
+  .splash-sub{font-family:var(--font-mono);font-size:12.5px;color:var(--ink-faint);}
+
+  /* ---- Badge / chip ---- */
+  .badge{
+    display:inline-flex;align-items:center;gap:7px;
+    font-size:13px;font-weight:600;
+    padding:8px 16px;border-radius:var(--radius-pill);
+    width:fit-content;margin-bottom:20px;
+    background:rgba(255,107,91,.08);border:1px solid rgba(255,107,91,.4);
+    color:var(--alerta);
+  }
+
+  /* ---- Metric card ---- */
+  .card{
+    background:var(--panel);
+    border:1px solid var(--panel-border);
+    border-radius:var(--radius-card);
+    padding:22px 24px;
+    margin-bottom:16px;
+  }
+  .metric-row{display:flex;justify-content:space-between;align-items:baseline;gap:12px;padding:11px 0;border-bottom:1px solid var(--panel-border-soft);}
+  .metric-row:first-child{padding-top:0;}
+  .metric-row:last-child{border-bottom:none;padding-bottom:0;}
+  .metric-label{font-size:14px;color:var(--ink-muted);}
+  .metric-value{font-family:var(--font-head);font-size:17px;font-weight:700;white-space:nowrap;}
+  .metric-value.down{color:var(--alerta);}
+  .metric-value.flat{color:var(--ink-faint);}
+  .metric-value.up{color:var(--lima);}
+
+  .microcopy{font-size:14px;color:var(--ink-faint);margin:0;}
+
+  .checklist{margin:0 0 18px;}
+  .checklist p{
+    font-family:var(--font-mono);
+    font-size:13.5px;font-weight:500;letter-spacing:.01em;
+    color:var(--lima);
+    margin:0 0 6px;
+  }
+  .checklist p:last-child{margin-bottom:0;}
+
+  /* ---- CTA button ---- */
+  .btn{
+    font-family:var(--font-head);
+    font-weight:700;font-size:16px;
+    color:var(--carbon);
+    background:var(--lima);
+    border:none;border-radius:var(--radius-pill);
+    padding:0 28px;
+    min-height:52px;
+    display:inline-flex;align-items:center;justify-content:center;
+    cursor:pointer;width:100%;
+    transition:transform .15s ease, box-shadow .15s ease;
+  }
+  .btn:hover{transform:translateY(-2px);box-shadow:0 10px 26px rgba(197,237,112,.28);}
+  .btn:focus-visible{outline:3px solid var(--blanco);outline-offset:3px;}
+
+  .btn-ghost{
+    font-family:var(--font-head);
+    font-weight:600;font-size:15px;
+    color:var(--ink);
+    background:transparent;
+    border:1px solid var(--panel-border);
+    border-radius:var(--radius-pill);
+    padding:0 26px;
+    min-height:52px;
+    display:inline-flex;align-items:center;justify-content:center;
+    cursor:pointer;
+    transition:background-color .15s ease, transform .15s ease;
+  }
+  .btn-ghost:hover{background:rgba(255,255,255,.06);transform:translateY(-1px);}
+  .btn-ghost:focus-visible{outline:3px solid var(--lima);outline-offset:3px;}
+
+  /* ---- Foto circular ---- */
+  .photo-frame{
+    width:132px;height:132px;border-radius:50%;
+    border:3px solid var(--lima);
+    box-shadow:0 0 34px rgba(197,237,112,.22);
+    overflow:hidden;
+    margin:0 auto 24px;
+    flex-shrink:0;
+  }
+  .photo-frame img{width:100%;height:100%;object-fit:cover;object-position:center 30%;}
+
+  /* ---- Dato curioso card ---- */
+  .card-outline{
+    background:rgba(197,237,112,.06);
+    border:1px solid rgba(197,237,112,.35);
+    border-radius:var(--radius-card);
+    padding:18px 20px;
+    text-align:left;
+  }
+  .card-outline p{margin:0;font-size:14.5px;color:var(--ink);}
+
+  /* ---- Comentarios ---- */
+  .comment{
+    background:var(--panel);
+    border:1px solid var(--panel-border-soft);
+    border-radius:16px;
+    padding:15px 16px;
+    margin-bottom:12px;
+    display:flex;gap:12px;align-items:flex-start;
+    text-align:left;
+    width:100%;
+  }
+  .avatar{
+    width:36px;height:36px;border-radius:50%;
+    background:rgba(197,237,112,.14);
+    flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:16px;
+  }
+  .comment-name{font-family:var(--font-mono);font-size:11.5px;font-weight:500;color:var(--ink-faint);margin:0 0 4px;}
+  .comment-body p{margin:0;font-size:14.5px;color:var(--ink);line-height:1.45;}
+
+  .foot{font-size:12px;color:var(--ink-faint);text-align:center;padding:36px 26px 56px;}
+
+  /* ---- Finale overlay ---- */
+  #finale{
+    position:fixed;inset:0;z-index:60;
+    background:var(--carbon);
+    opacity:0;visibility:hidden;pointer-events:none;
+    transition:opacity .5s ease, visibility .5s ease, background-color .9s ease;
+  }
+  #finale.open{opacity:1;visibility:visible;pointer-events:auto;}
+  #finale.verde{background:var(--verde-nacional);}
+
+  .finale-phase{
+    position:absolute;inset:0;
+    opacity:0;visibility:hidden;
+    transition:opacity .6s ease, visibility .6s ease;
+  }
+  .finale-phase.active{opacity:1;visibility:visible;}
+
+  #phase1{
+    display:flex;align-items:center;justify-content:center;
+    padding:0 30px;
+  }
+  .intro-line{
+    text-align:center;
+    font-size:19px;color:var(--ink);
+    max-width:300px;
+    transition:opacity .25s ease;
+  }
+  .intro-line.mono{font-family:var(--font-mono);font-size:14px;color:var(--ink-faint);letter-spacing:.02em;}
+
+  #phase2{
+    overflow-y:auto;
+    -webkit-overflow-scrolling:touch;
+    padding:72px 26px 90px;
+    text-align:center;
+  }
+  #phase2 .stack{max-width:340px;margin:0 auto;}
+
+  .reveal-line{
+    opacity:0;transform:translateY(12px);
+    transition:opacity .55s ease, transform .55s ease;
+    font-size:17.5px;color:var(--ink);
+    margin:0 0 20px;
+  }
+  .reveal-line.show{opacity:1;transform:translateY(0);}
+  .reveal-line.big{
+    font-family:var(--font-head);
+    font-weight:800;font-size:26px;
+    color:var(--lima);
+    line-height:1.25;
+    margin-bottom:26px;
+  }
+
+  #phase3{
+    display:flex;flex-direction:column;align-items:center;justify-content:center;
+    text-align:center;padding:40px 30px;
+  }
+  #phase3 .eyebrow{color:var(--lima);}
+  #phase3 h2{color:var(--ink);font-size:clamp(21px,6.2vw,27px);max-width:320px;}
+  #phase3 .signature{color:var(--ink-muted);font-size:14.5px;margin-bottom:28px;}
+
+  .confetti{position:fixed;top:-24px;font-size:20px;z-index:61;pointer-events:none;animation:fall linear forwards;}
+  @keyframes fall{to{transform:translateY(112vh) rotate(360deg);opacity:.85;}}
+
+  @media (prefers-reduced-motion: reduce){
+    .screen{transition:none;opacity:1;transform:none;}
+    .loadbar-fill{animation:none;width:100%;}
+    .confetti{display:none;}
+    .reveal-line{transition:none;}
+    .finale-phase{transition:none;}
+    #finale{transition:none;}
+  }
+</style>
+</head>
+<body>
+
+<div id="splash">
+  <div class="logo-mark">Grapez · Security Center</div>
+  <div class="loadbar"><div class="loadbar-fill"></div></div>
+  <div class="splash-sub">Escaneando accesos: <strong style="color:var(--lima)">MAURO_ROOT</strong>...</div>
+</div>
+
+<div class="wrap">
+
+  <section class="screen bg-carbon" id="s1">
+    <div class="badge">🚨 Acceso no autorizado detectado</div>
+    <div class="eyebrow">Incidente activo</div>
+    <h1 class="mono">CUMPLEAÑOS_MAURO_2026</h1>
+    <p>El sistema detectó un movimiento sospechoso: <strong>alguien con acceso root a todas nuestras cuentas está cumpliendo años.</strong> Y en Grapez solo hay una persona capaz de hackearnos de verdad... así que hoy le toca a él que lo celebren.</p>
+    <div class="card">
+      <div class="metric-row"><span class="metric-label">Uptime del sitio</span><span class="metric-value down">12% ↓</span></div>
+      <div class="metric-row"><span class="metric-label">Tiempo de respuesta</span><span class="metric-value down">9.800 ms ↓</span></div>
+      <div class="metric-row"><span class="metric-label">Edad registrada</span><span class="metric-value flat">20 ↻ error</span></div>
+    </div>
+    <p class="microcopy">↓ Sigue bajando para ver cómo se resolvió el incidente</p>
+  </section>
+
+  <section class="screen bg-carbon" id="s2">
+    <div class="eyebrow">Despliegue en curso</div>
+    <h2>Activando el modo Mauro: conectar, depurar, salvar 🛠️</h2>
+    <div class="card">
+      <div class="metric-row"><span class="metric-label">Uptime del sitio</span><span class="metric-value up" id="uptime">12%</span></div>
+      <div class="metric-row"><span class="metric-label">Plataformas conectadas</span><span class="metric-value up" id="plataformas">3</span></div>
+      <div class="metric-row"><span class="metric-label">Nivel fullstack detectado</span><span class="metric-value up" id="fullstack">12%</span></div>
+    </div>
+    <div class="checklist">
+      <p>&gt; APIs conectadas ✅</p>
+      <p>&gt; Pentágono rescatado ✅</p>
+      <p>&gt; Ecosistema de aliados funcionando ✅</p>
+    </div>
+    <p>Desde <strong>"¿cómo accedo a esta info?"</strong> hasta <strong>"colapsé el sitio web del Pentágono y hay que salvarlo"</strong>: él está ahí. Así se sostiene la parte técnica de Grapez, y tú eres quien la hace funcionar.</p>
+  </section>
+
+  <section class="screen bg-carbon center" id="s3">
+    <div class="eyebrow">Fuera de la terminal</div>
+    <h2>Lo que los logs no cuentan</h2>
+    <div class="photo-frame">
+      <img src="imagenes/mauro.png" alt="Mauro">
+    </div>
+    <p>Detrás de cada integración, cada plataforma conectada y cada incendio apagado, está nuestro CTO: el que le mete la mirada técnica a todos los proyectos, fullstack con experiencia en enemil proyectos, emprendedor empedernido, hincha de Nacional hasta la médula y el mejor dealer de tacos mexicanos que conocemos. Este año lo volviste a demostrar: no hay reto técnico que te quede grande.</p>
+    <div class="card-outline">
+      <p>🧑‍💻 <strong>Dato curioso:</strong> lo conocemos hace más de 10 años, sigue cumpliendo años... y nunca pasa de los 20. Es el chiquito del grupo, pero un grande cuando toca enfrentar un reto de tecnología.</p>
+    </div>
+  </section>
+
+  <section class="screen bg-carbon center" id="s4">
+    <div class="eyebrow">Logs del equipo</div>
+    <h2>El equipo está haciendo commits en vivo 💬</h2>
+
+    <div class="comment">
+      <div class="avatar">🎉</div>
+      <div class="comment-body"><div class="comment-name">equipo_grapez</div><p>¡Feliz cumpleaños, Mauro! Que este nuevo año compile sin errores y venga cargado de puras cosas buenas 💚</p></div>
+    </div>
+    <div class="comment">
+      <div class="avatar">⚽</div>
+      <div class="comment-body"><div class="comment-name">equipo_grapez</div><p>Que este año el verde sea el color de todo: de Nacional, de los proyectos y de los tests 💚🤍</p></div>
+    </div>
+    <div class="comment">
+      <div class="avatar">🌮</div>
+      <div class="comment-body"><div class="comment-name">equipo_grapez</div><p>Gracias por salvarnos cada vez que rompemos algo. Hoy los tacos van por nuestra cuenta (bueno, casi) 😄</p></div>
+    </div>
+    <div class="comment">
+      <div class="avatar">🏍️</div>
+      <div class="comment-body"><div class="comment-name">equipo_grapez</div><p>Que este año venga lleno de rodadas, emprendimientos nuevos y kilómetros con la moto nueva. ¡Que la pases una chimba!</p></div>
+    </div>
+  </section>
+
+  <section class="screen bg-carbon center" id="s5">
+    <div class="eyebrow">Reporte final</div>
+    <h2>Build lista para producción</h2>
+    <p>Todos los tests pasaron y el incidente quedó cerrado. Es momento de hacer deploy.</p>
+    <button class="btn" id="revealBtn">Hacer deploy 🚀</button>
+  </section>
+
+  <div class="foot">Grapez Studio · Security Center (versión no oficial, hecha con cariño)</div>
+</div>
+
+<div id="finale" aria-hidden="true">
+  <div id="phase1" class="finale-phase active">
+    <p id="introLine" class="intro-line"></p>
+  </div>
+
+  <div id="phase2" class="finale-phase">
+    <div class="stack">
+      <p class="reveal-line big" data-delay="0">¡SÍ! ¡ASÍ COMO LO LEÍSTE! ¡HAY BONO!!</p>
+      <p class="reveal-line" data-delay="2200">Activamos la campaña <strong style="color:var(--lima)">#MauroEnSuMoto</strong> 🏍️</p>
+      <p class="reveal-line" data-delay="4400">Queremos darte un bono de <strong style="color:var(--lima)">$200.000 en ADT by Bosi</strong></p>
+      <p class="reveal-line" data-delay="6600">para que le compres a tu moto los accesorios que le hagan falta</p>
+      <p class="reveal-line" data-delay="8800">y la disfrutes al 100 %, como te lo mereces. 🏁</p>
+    </div>
+  </div>
+
+  <div id="phase3" class="finale-phase">
+    <div class="photo-frame">
+      <img src="imagenes/mauro.png" alt="Mauro">
+    </div>
+    <div class="eyebrow">Deploy exitoso</div>
+    <h2>🎉 20 años (otra vez) de puro talento técnico</h2>
+    <p class="signature">Con cariño, todo el equipo Grapez 💚</p>
+    <button class="btn-ghost" id="closeFinale">Cerrar</button>
+  </div>
+</div>
+
+<script>
+  const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  // Splash
+  window.addEventListener('load', () => {
+    setTimeout(() => document.getElementById('splash').classList.add('hide'), reduceMotion ? 200 : 2100);
+  });
+
+  // Scroll reveal por sección
+  const screens = document.querySelectorAll('.screen');
+  const io = new IntersectionObserver((entries) => {
+    entries.forEach(e => { if (e.isIntersecting) e.target.classList.add('in-view'); });
+  }, {threshold:.25});
+  screens.forEach(s => io.observe(s));
+
+  // Count-up de métricas en s2
+  let counted = false;
+  const io2 = new IntersectionObserver((entries) => {
+    entries.forEach(e => {
+      if (e.isIntersecting && !counted) {
+        counted = true;
+        animateCount('uptime', 12, 99.9, '%', 1);
+        animateCount('plataformas', 3, 999, '', 0, 'enemil');
+        animateCount('fullstack', 12, 100, '%', 0);
+      }
+    });
+  }, {threshold:.4});
+  io2.observe(document.getElementById('s2'));
+
+  function animateCount(id, start, end, suffix, decimals, finalText) {
+    const el = document.getElementById(id);
+    const done = () => { el.textContent = finalText || (end.toFixed(decimals) + suffix); };
+    if (reduceMotion) { done(); return; }
+    const duration = 1300;
+    const t0 = performance.now();
+    function tick(now) {
+      const p = Math.min((now - t0) / duration, 1);
+      const val = start + (end - start) * p;
+      el.textContent = val.toFixed(decimals) + suffix;
+      if (p < 1) requestAnimationFrame(tick); else done();
+    }
+    requestAnimationFrame(tick);
+  }
+
+  // ---- Revelación final: fase 1 (intro), fase 2 (bono sobre verde), fase 3 (cierre) ----
+  const finale = document.getElementById('finale');
+  const phase1 = document.getElementById('phase1');
+  const phase2 = document.getElementById('phase2');
+  const phase3 = document.getElementById('phase3');
+  const introLine = document.getElementById('introLine');
+
+  const introMsgs = [
+    {text:"Compilando regalo...", cls:"mono"},
+    {text:"🎵 Si hay moto, hay rodada...", cls:""},
+    {text:"Si hay rodada, hay bono 🎶", cls:""}
+  ];
+
+  function playIntro(onDone) {
+    if (reduceMotion) { onDone(); return; }
+    let i = 0;
+    function next() {
+      if (i >= introMsgs.length) { onDone(); return; }
+      const msg = introMsgs[i];
+      introLine.style.opacity = 0;
+      setTimeout(() => {
+        introLine.className = 'intro-line ' + msg.cls;
+        introLine.textContent = msg.text;
+        introLine.style.opacity = 1;
+        i++;
+        setTimeout(next, 1400);
+      }, 250);
+    }
+    next();
+  }
+
+  function playPhase2() {
+    finale.classList.add('verde');
+    phase1.classList.remove('active');
+    phase2.classList.add('active');
+
+    const lines = phase2.querySelectorAll('.reveal-line');
+    lines.forEach(l => l.classList.remove('show'));
+
+    let lastDelay = 0;
+    lines.forEach(l => {
+      const delay = reduceMotion ? 0 : parseInt(l.dataset.delay || 0, 10);
+      lastDelay = Math.max(lastDelay, delay);
+      setTimeout(() => {
+        l.classList.add('show');
+        if (l.classList.contains('big')) launchConfetti();
+      }, delay);
+    });
+
+    setTimeout(playPhase3, reduceMotion ? 6500 : lastDelay + 4200);
+  }
+
+  function playPhase3() {
+    phase2.classList.remove('active');
+    phase3.classList.add('active');
+  }
+
+  document.getElementById('revealBtn').addEventListener('click', () => {
+    finale.classList.add('open');
+    finale.setAttribute('aria-hidden', 'false');
+    finale.classList.remove('verde');
+    phase1.classList.add('active');
+    phase2.classList.remove('active');
+    phase3.classList.remove('active');
+    introLine.textContent = '';
+    introLine.className = 'intro-line';
+    playIntro(playPhase2);
+  });
+
+  document.getElementById('closeFinale').addEventListener('click', () => {
+    finale.classList.remove('open');
+    finale.setAttribute('aria-hidden', 'true');
+  });
+
+  function launchConfetti() {
+    if (reduceMotion) return;
+    const emojis = ['🎉','💚','🏍️','🌮','⚽','✨'];
+    for (let i = 0; i < 30; i++) {
+      const c = document.createElement('div');
+      c.className = 'confetti';
+      c.textContent = emojis[Math.floor(Math.random() * emojis.length)];
+      c.style.left = Math.random() * 96 + 'vw';
+      c.style.animationDuration = (2.4 + Math.random() * 2) + 's';
+      c.style.fontSize = (14 + Math.random() * 14) + 'px';
+      document.body.appendChild(c);
+      setTimeout(() => c.remove(), 5000);
+    }
+  }
+</script>
+
+</body>
+</html>
